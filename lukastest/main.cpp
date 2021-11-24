@@ -15,10 +15,10 @@ void first_grid()
   Triangulation<2> triangulation;
   GridGenerator::hyper_cube(triangulation);
   triangulation.refine_global(4);
-  std::ofstream out("grid-1.eps");
+  std::ofstream out("grid-1.vtk");
   GridOut       grid_out;
-  grid_out.write_eps(triangulation, out);
-  std::cout << "Grid written to grid-1.eps" << std::endl;
+  grid_out.write_vtk(triangulation, out);
+  std::cout << "Grid written to grid-1.vtk" << std::endl;
 }
 void second_grid()
 {
@@ -44,10 +44,10 @@ void second_grid()
         }
       triangulation.execute_coarsening_and_refinement();
     }
-  std::ofstream out("grid-2.eps");
+  std::ofstream out("grid-2.vtk");
   GridOut       grid_out;
-  grid_out.write_eps(triangulation, out);
-  std::cout << "Grid written to grid-2.eps" << std::endl;
+  grid_out.write_vtk(triangulation, out);
+  std::cout << "Grid written to grid-2.vtk" << std::endl;
   triangulation.reset_manifold(0);
 }
 int main()
