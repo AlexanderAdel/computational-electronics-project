@@ -14,7 +14,10 @@ set(LIBRARY_OUTPUT_PATH ${CMAKE_BINARY_DIR}/lib)
 
 # 2. Deal II Library with Solver Library
 
-find_package(deal.II 9.0 REQUIRED)
+FIND_PACKAGE(deal.II 9.1.1 REQUIRED
+    HINTS $(DEAL_II_DIR) ../ ../ ../ $ENV{DEAL_II_DIR}
+    /usr/local/lib/
+)
 DEAL_II_INITIALIZE_CACHED_VARIABLES()
 
 # 3. Solver Library
@@ -36,7 +39,7 @@ set(CMAKE_AUTORCC ON)
 # 5. VTK Library
 
 find_package(VTK 9.0 REQUIRED COMPONENTS GUISupportQt IOLegacy)
-#set(VTK_DIR "/home/alexander/VTK/VTK-9.1.0/Build/lib/cmake/vtk-9.1")
+set(VTK_DIR "/home/lukas/vtk/build/lib/cmake/vtk-9.1")
 
 # 6. Project Executable
 

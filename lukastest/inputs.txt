@@ -1,0 +1,4 @@
+Inputs für die FEM methode:
+1) 2D oder 3D
+2) degree of shape functions (1,2,3)
+3) refinement of grid

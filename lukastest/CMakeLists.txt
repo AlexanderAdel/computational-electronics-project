@@ -1,6 +1,6 @@
 cmake_minimum_required(VERSION 3.10)
 
-FIND_PACKAGE(deal.II 9.3.2 REQUIRED
+FIND_PACKAGE(deal.II 9.1.1 REQUIRED
     HINTS $(DEAL_II_DIR) ../ ../ ../ $ENV{DEAL_II_DIR}
     /usr/local/lib/
 )
