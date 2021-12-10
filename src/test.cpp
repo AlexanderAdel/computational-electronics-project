@@ -2,6 +2,7 @@
 
 // Include for Solver Library
 #include "../lib/solver.hpp"
+#include "../lib/poisson.hpp"
 
 #include <QVTKOpenGLNativeWidget.h>
 #include <QWidget>
@@ -116,6 +117,11 @@ private:
     QWidget* centralWidget;
     QVBoxLayout* layout;
 
+    QPushButton* poissonButton_prepare;
+    QPushButton* poissonButton_run;
+    Poisson poisson_problem; // Poisson class
+    bool generatedGrid = false; // Grid Flag
+
 public:
     MainWindow(QWidget* parent = nullptr) : QMainWindow(parent)
     {
@@ -126,6 +132,9 @@ public:
         button = new QPushButton(this);
         centralWidget = new QWidget(this);
         layout = new QVBoxLayout(centralWidget);
+
+        poissonButton_prepare = new QPushButton(this);
+        poissonButton_run = new QPushButton(this);
     }
 
     ~MainWindow() {}
@@ -139,15 +148,23 @@ public:
         layout->addWidget(labelOuterRadius);
 
         button->setText("Generate Radial Mesh");
-        QObject::connect(button, SIGNAL(clicked()), this, SLOT(clickedSlot()));
+        QObject::connect(button, SIGNAL(clicked()), this, SLOT(clickedSlot_A()));
         layout->addWidget(button);
+
+        poissonButton_prepare->setText("Generate Poisson Mesh");
+        QObject::connect(poissonButton_prepare, SIGNAL(clicked()), this, SLOT(clickedSlot_B()));
+        layout->addWidget(poissonButton_prepare);
+
+        poissonButton_run->setText("Solve Poisson Problem");
+        QObject::connect(poissonButton_run, SIGNAL(clicked()), this, SLOT(clickedSlot_C()));
+        layout->addWidget(poissonButton_run);
 
         centralWidget->setSizePolicy(QSizePolicy::Expanding,QSizePolicy::Expanding);
         setCentralWidget(centralWidget);
     }
 
 public slots:
-    void clickedSlot()
+    void clickedSlot_A()
     {
         QDialog dialog(this);
         dialog.resize(350, 100);
@@ -187,6 +204,40 @@ public slots:
             Solver::generateRadialGrid(innerRadius, outerRadius);
             visualizationWidget->openFile("radialGrid.vtk");
         }
+    }
+
+    void clickedSlot_B()
+    {
+        if (generatedGrid == true)
+        {
+            QMessageBox::information(this, "Error",
+            "Grid already generated!");
+            return;
+        }
+
+        poisson_problem.prepare();
+        visualizationWidget->openFile("grid.vtk");
+
+        generatedGrid = true;
+
+        this->labelInnerRadius->setText("Poisson Grid Generated");
+        this->labelOuterRadius->setText("");
+    }
+
+    void clickedSlot_C()
+    {
+        if (generatedGrid == false)
+        {
+            QMessageBox::information(this, "Error",
+            "Please generate a grid before solving the Poisson problem!");
+            return;
+        }
+
+        poisson_problem.run();
+        visualizationWidget->openFile("solution.vtk");
+
+        this->labelInnerRadius->setText("Poisson Grid Generated");
+        this->labelOuterRadius->setText("Poisson Problem Solved");
     }
 }; 
 
