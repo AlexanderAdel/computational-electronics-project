@@ -14,16 +14,17 @@ set(LIBRARY_OUTPUT_PATH ${CMAKE_BINARY_DIR}/lib)
 
 # 2. Deal II Library with Solver Library
 
-FIND_PACKAGE(deal.II 9.1.1 REQUIRED
-    HINTS $(DEAL_II_DIR) ../ ../ ../ $ENV{DEAL_II_DIR}
-    /usr/local/lib/
-)
+find_package(deal.II 9.3.2 REQUIRED)
 DEAL_II_INITIALIZE_CACHED_VARIABLES()
+#set(deal.II_DIR "/home/alexander/DEAL_II/dealii-9.3.2/build/lib/cmake/deal.II")
 
 # 3. Solver Library
 
 add_library(Solver STATIC lib/solver.cpp)
 DEAL_II_SETUP_TARGET(Solver)
+
+add_library(Poisson STATIC lib/poisson.cpp)
+DEAL_II_SETUP_TARGET(Poisson)
 
 # 4. Qt Library 
 
@@ -48,6 +49,7 @@ add_executable(${PROJECT_NAME} src/test.cpp)
 DEAL_II_SETUP_TARGET(${PROJECT_NAME})
 
 target_link_libraries(${PROJECT_NAME} Solver
+                                      Poisson
                                       Qt5::Widgets 
                                       Qt5::OpenGL
                                       VTK::GUISupportQt 
@@ -55,3 +57,8 @@ target_link_libraries(${PROJECT_NAME} Solver
 
 vtk_module_autoinit(TARGETS ${PROJECT_NAME} MODULES VTK::GUISupportQt 
                                                     VTK::IOLegacy)
+
+
+# Terminal command:
+# cmake -DVTK_DIR="/home/alexander/VTK/VTK-9.1.0/Build/lib/cmake/vtk-9.1" 
+#       -Ddeal.II_DIR="/home/alexander/DEAL_II/dealii-9.3.2/build/lib/cmake/deal.II" ..
