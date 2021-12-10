@@ -8,7 +8,7 @@ DEAL_II_INITIALIZE_CACHED_VARIABLES()
 
 project (poisson)
 
-ADD_EXECUTABLE(poisson main.cpp)
+ADD_EXECUTABLE(poisson poisson.cpp)
 DEAL_II_SETUP_TARGET(poisson)
 
 set(CMAKE_CXX_STANDARD 17)
