@@ -2,8 +2,11 @@
 using namespace dealii;
 
 
-Poisson::Poisson(): finite_element(1), dof_handler(triangulation)
-{}
+Poisson::Poisson(std::vector<int> _dimensions, int _refinement, int _shape_function): refinement(_refinement), shape_functions(_shape_function), finite_element(_shape_function), dof_handler(triangulation)
+{
+  point[0] = _dimensions[0];
+  point[1] = _dimensions[1];
+}
 
 //! make_grid
 /*!
@@ -12,8 +15,10 @@ Poisson::Poisson(): finite_element(1), dof_handler(triangulation)
 */
 void Poisson::make_grid()
 {
-  GridGenerator::hyper_cube(triangulation, -1 , 1);
-  triangulation.refine_global(3);
+  Point<2> origin;
+  //GridGenerator::hyper_cube(triangulation, -1 , 1);
+  GridGenerator::hyper_rectangle(triangulation, origin, point, false);
+  triangulation.refine_global(refinement);
 
   std::cout << "Number of active cells: " << triangulation.n_active_cells() << std::endl;
 }

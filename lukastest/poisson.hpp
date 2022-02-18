@@ -29,17 +29,19 @@
 
 
 #include <deal.II/numerics/data_out.h>
+#include <deal.II/base/point.h>
 
 #include <iostream>
 #include <fstream>
 #include <cmath>
+#include <vector>
 
 using namespace dealii;
 
 class Poisson
 {
   public:
-    Poisson();
+    Poisson(std::vector<int> _dimensions, int _refinement, int _shape_function);
     void prepare();
     void run();
 
@@ -51,7 +53,12 @@ class Poisson
     void solve();
     void output_results() const;
 
+    std::vector<int> dimensions;
+    int refinement;
+    int shape_functions;
+
     Triangulation<2> triangulation;
+    Point<2> point;
     FE_Q<2> finite_element;
     DoFHandler<2> dof_handler;
 
@@ -63,8 +70,3 @@ class Poisson
 };
 
 
-/*Execute solver :
-Poisson poisson_problem;
-poisson_problem.prepare();
-poisson_problem.run();
-*/
