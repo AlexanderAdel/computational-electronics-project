@@ -21,13 +21,10 @@ set(EXECUTABLE_OUTPUT_PATH ${CMAKE_BINARY_DIR}/bin)
 find_package(deal.II 9.3.2 REQUIRED)
 DEAL_II_INITIALIZE_CACHED_VARIABLES()
 
-# 3. Solver Library
+# 3. Poisson Solver Library
 
-add_library(Solver STATIC lib/solver.cpp)
-DEAL_II_SETUP_TARGET(Solver)
-
-add_library(Poisson STATIC lib/poisson.cpp)
-DEAL_II_SETUP_TARGET(Poisson)
+add_library(PoissonLib STATIC lib/poisson.cpp)
+DEAL_II_SETUP_TARGET(PoissonLib)
 
 # 4. Qt Library 
 
@@ -66,8 +63,7 @@ add_executable(${PROJECT_NAME} src/VisualizationGUI.cpp
                                src/VisualizationWindow.hpp)
 DEAL_II_SETUP_TARGET(${PROJECT_NAME})
 
-target_link_libraries(${PROJECT_NAME} Solver
-                                      Poisson
+target_link_libraries(${PROJECT_NAME} PoissonLib
                                       Qt5::Widgets 
                                       Qt5::OpenGL
                                       ${VTK_LIBRARIES})

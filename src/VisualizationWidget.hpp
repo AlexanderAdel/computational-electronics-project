@@ -1,7 +1,6 @@
 /* File: VisualizationWidget.hpp */
 
-// Includes from the Solver Library
-#include "../lib/solver.hpp"
+// Include from the Poisson Solver Library
 #include "../lib/poisson.hpp"
 
 // Includes from the VTK Library
@@ -47,7 +46,6 @@ private:
 
     vtkNew<vtkLookupTable> lut;
     vtkNew<vtkScalarBarActor> scalarBar;
-    vtkNew<vtkDataSetReader> reader;
     vtkNew<vtkNamedColors> colors;
 
 public:
@@ -114,6 +112,7 @@ public:
 
     void openFile(const QString& fileName)
     {
+        vtkNew<vtkDataSetReader> reader;
         reader->SetFileName(fileName.toStdString().c_str());
         reader->Update();
 

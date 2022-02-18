@@ -1,11 +1,14 @@
+/* File: poisson.cpp */
 
 #include "poisson.hpp"
-
 using namespace dealii;
 
 
-Poisson::Poisson(): finite_element(1), dof_handler(triangulation)
-{}
+Poisson::Poisson(std::vector<int> _dimensions, int _refinement, int _shape_function): refinement(_refinement), shape_functions(_shape_function), finite_element(_shape_function), dof_handler(triangulation)
+{
+  point[0] = _dimensions[0];
+  point[1] = _dimensions[1];
+}
 
 //! make_grid
 /*!
@@ -14,8 +17,10 @@ Poisson::Poisson(): finite_element(1), dof_handler(triangulation)
 */
 void Poisson::make_grid()
 {
-  GridGenerator::hyper_cube(triangulation, -1 , 1);
-  triangulation.refine_global(5);
+  Point<2> origin;
+  //GridGenerator::hyper_cube(triangulation, -1 , 1);
+  GridGenerator::hyper_rectangle(triangulation, origin, point, false);
+  triangulation.refine_global(refinement);
 
   std::cout << "Number of active cells: " << triangulation.n_active_cells() << std::endl;
 }
@@ -88,7 +93,9 @@ void Poisson::assemble_system()
     }
 
     std::map<types::global_dof_index, double> boundary_values;
-    VectorTools::interpolate_boundary_values(dof_handler,0,Functions::ZeroFunction<2>(),boundary_values);
+
+    /* Change boundary value here, with either ZeroFunction<2>() or ConstantFunction<2>(value)*/
+    VectorTools::interpolate_boundary_values(dof_handler,0,Functions::ConstantFunction<2>(1),boundary_values);
 
     MatrixTools::apply_boundary_values(boundary_values,system_matrix,solution,system_rhs);
 
@@ -125,4 +132,3 @@ void Poisson::run()
   solve();
   output_results();
 }
-
