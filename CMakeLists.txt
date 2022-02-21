@@ -45,7 +45,10 @@ endif()
 
 # 2. Deal II Library with Solver Library
 
-find_package(deal.II 9.3.2 REQUIRED)
+find_package(deal.II 9.1.1 REQUIRED
+    HINTS $(DEAL_II_DIR) ../ ../ ../ $ENV{DEAL_II_DIR}
+    /usr/local/lib/
+)
 DEAL_II_INITIALIZE_CACHED_VARIABLES()
 
 # 3. Poisson Solver Library
@@ -81,7 +84,10 @@ find_package(VTK 9.0 REQUIRED COMPONENTS GUISupportQt
                                          RenderingCore
                                          RenderingFreeType
                                          RenderingGL2PSOpenGL2
-                                         RenderingOpenGL2)
+                                         RenderingOpenGL2
+                                        
+	HINTS /home/lukas/vtk/VTK-9.1.0/
+)
 
 # 6. Project Executable
 
