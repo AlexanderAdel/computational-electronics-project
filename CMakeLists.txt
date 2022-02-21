@@ -6,15 +6,42 @@
 
 cmake_minimum_required(VERSION 3.0)
 
-# 1. Project Properties
+# 0. Project Properties
 
-project(ComputationalElectronicsProject)
+project(ComputationalElectronicsProject
+        VERSION 0.1.0.0 
+        LANGUAGES CXX 
+        DESCRIPTION "Poisson Equation Solver with GUI")
 
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++17 -Wall")
 
 set(LIBRARY_OUTPUT_PATH ${CMAKE_BINARY_DIR}/lib)
 set(EXECUTABLE_OUTPUT_PATH ${CMAKE_BINARY_DIR}/bin)
+
+# 1. Doxygen 
+
+find_package(Doxygen)
+option(BUILD_DOCUMENTATION "Build Doxygen documentation" ${DOXYGEN_FOUND})
+
+if(BUILD_DOCUMENTATION)
+	if(DOXYGEN_FOUND)
+		set(DOXYGEN_IN ${CMAKE_CURRENT_LIST_DIR}/docs/Doxyfile.in)
+		set(DOXYGEN_OUT ${PROJECT_BINARY_DIR}/Doxyfile)
+
+		configure_file(${DOXYGEN_IN} ${DOXYGEN_OUT} @ONLY)
+		message("-- Doxygen build enabled")
+
+		add_custom_target(docs ALL
+			COMMAND ${DOXYGEN_EXECUTABLE} ${DOXYGEN_OUT}
+			WORKING_DIRECTORY ${PROJECT_BINARY_DIR}
+			COMMENT "Generating API docs with Doxygen"
+			VERBATIM)
+	else()
+		message(FATAL_ERROR 
+			"Doxygen generation requested but package was not found")
+	endif()
+endif()
 
 # 2. Deal II Library with Solver Library
 

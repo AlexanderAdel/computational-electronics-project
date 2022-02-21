@@ -10,6 +10,9 @@
 #include <QApplication>
 #include <QSurfaceFormat>
 
+/*!
+ *  @brief Main function.
+ */
 int main(int argc, char** argv)
 {
     QSurfaceFormat::setDefaultFormat(QVTKOpenGLNativeWidget::defaultFormat());

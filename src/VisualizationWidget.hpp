@@ -30,6 +30,9 @@
 #include <vtkPolyData.h>
 #include <vtkPolyDataMapper.h>
 
+/*!
+ *  @brief Visualization Widget.
+ */
 class VisualizationWidget : public QVTKOpenGLNativeWidget 
 {
     Q_OBJECT
