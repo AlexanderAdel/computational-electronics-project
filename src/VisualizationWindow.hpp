@@ -30,13 +30,6 @@ private:
     QGridLayout* gridLayout;
     VisualizationWidget* visualizationWidget;
 
-    QInputDialog* inputDialog;
-    QLabel* label_1;
-    QLabel* label_2;
-    QLabel* label_3;
-    QPushButton* prepareButton;
-    QPushButton* runButton;
-
     QGroupBox* meshGroupBox;
     QFormLayout* meshFormLayout;
 
@@ -59,6 +52,8 @@ private:
     QComboBox* refinement;
     QComboBox* shapeFunction;
 
+    QPushButton* runButton;
+
     bool generatedGrid = false; // Grid Flag
     std::vector<int> _dimensions2D = std::vector<int>(2, 0);
     std::vector<int> _dimensions3D = std::vector<int>(3, 0);
@@ -78,7 +73,7 @@ public:
 
         visualizationWidget = new VisualizationWidget();
         visualizationWidget->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
-        gridLayout->addWidget(visualizationWidget, 0, 0, 6, 1);
+        gridLayout->addWidget(visualizationWidget, 0, 0, 3, 1);
 
         meshGroupBox = new QGroupBox(tr("MESH PROPERTIES"));
         meshGroupBox->setSizePolicy(QSizePolicy::Minimum, QSizePolicy::Minimum);
@@ -129,21 +124,11 @@ public:
         FEMGroupBox->setLayout(FEMFormLayout);
         gridLayout->addWidget(FEMGroupBox, 1, 1);
 
-        label_1 = new QLabel(this);
-        label_1->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
-        gridLayout->addWidget(label_1, 2, 1);
-        label_2 = new QLabel(this);
-        label_2->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
-        gridLayout->addWidget(label_2, 3, 1);
-        label_3 = new QLabel(this);
-        label_3->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
-        gridLayout->addWidget(label_3, 4, 1);
-
         runButton = new QPushButton(this);
-        runButton->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
+        runButton->setSizePolicy(QSizePolicy::Preferred, QSizePolicy::Preferred);
         runButton->setText("Solve Poisson Problem");
         QObject::connect(runButton, SIGNAL(clicked()), this, SLOT(clickedRunButton()));
-        gridLayout->addWidget(runButton, 5, 1);
+        gridLayout->addWidget(runButton, 2, 1);
     }
 
     ~VisualizationWindow() {}
