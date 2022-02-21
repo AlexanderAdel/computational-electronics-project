@@ -184,7 +184,7 @@ public slots:
             _refinement = refinement->currentText().toInt();
             _shapeFunction = shapeFunction->currentText().toInt();
 
-            Poisson<2> poissonProblem2D(_dimensions2D, _refinement, _shapeFunction);
+            Poisson<2> poissonProblem2D(_dimensions2D, _refinement, _shapeFunction, _boundaryValue);
             poissonProblem2D.run();
             visualizationWidget->openFile("solution-2d.vtk");
         }
@@ -206,7 +206,7 @@ public slots:
             _refinement = refinement->currentText().toInt();
             _shapeFunction = shapeFunction->currentText().toInt();
 
-            Poisson<3> poissonProblem3D(_dimensions3D, _refinement, _shapeFunction);
+            Poisson<3> poissonProblem3D(_dimensions3D, _refinement, _shapeFunction, _boundaryValue);
             poissonProblem3D.run();
             visualizationWidget->openFile("solution-3d.vtk");
         }
