@@ -16,6 +16,7 @@
 #include <QGroupBox>
 #include <QComboBox>
 #include <QSpinBox>
+#include <QIntValidator>
 
 /*!
  *  @brief Visualization Window.
@@ -42,10 +43,15 @@ private:
     QComboBox* meshType;
     QLineEdit* boundaryValue;
 
+    QValidator* validator;
+    QValidator* dim_validator;
+
     QLineEdit* dimension_A;
     QLineEdit* dimension_B;
+    QLineEdit* dimension_C;
     QLabel* dimension_A_label;
     QLabel* dimension_B_label;
+    QLabel* dimension_C_label;
 
     QGroupBox* FEMGroupBox;
     QFormLayout* FEMFormLayout;
@@ -54,7 +60,9 @@ private:
     QComboBox* shapeFunction;
 
     bool generatedGrid = false; // Grid Flag
-    std::vector<int> _dimensions = std::vector<int>(2, 0);
+    std::vector<int> _dimensions2D = std::vector<int>(2, 0);
+    std::vector<int> _dimensions3D = std::vector<int>(3, 0);
+    int _boundaryValue = 0;
     int _refinement = 0;
     int _shapeFunction = 0;
 
@@ -77,15 +85,21 @@ public:
         meshFormLayout = new QFormLayout;
 
         meshType = new QComboBox();
-        meshType->addItem("Square Grid");
+        meshType->addItem("2D Square Grid");
+        meshType->addItem("3D Square Grid");
         meshType->addItem("Radial Grid");
 
+        validator = new QIntValidator(0, 999);
         boundaryValue = new QLineEdit();
+        boundaryValue->setValidator(validator);
 
+        dim_validator = new QIntValidator(1, 999);
         dimension_A = new QLineEdit();
+        dimension_A->setValidator(dim_validator);
         dimension_B = new QLineEdit();
-        dimension_A_label = new QLabel(tr("Length = "));
-        dimension_B_label = new QLabel(tr("Width = "));
+        dimension_B->setValidator(dim_validator);
+        dimension_A_label = new QLabel(tr("Length in X = "));
+        dimension_B_label = new QLabel(tr("Length in Y = "));
 
         meshFormLayout->addRow(new QLabel(tr("Mesh Type = ")), meshType);
         QObject::connect(meshType, SIGNAL(currentIndexChanged(const QString&)),
@@ -134,39 +148,82 @@ public:
 
     ~VisualizationWindow() {}
 
-    void solvePoissonProblem(std::vector<int> _dimensions, int _refinement, int _shapeFunction)
-    {
-        Poisson poissonProblem(_dimensions, _refinement, _shapeFunction);
-        poissonProblem.prepare();
-        poissonProblem.run();
-    }
-
 public slots:
     void switchedMeshType(const QString& meshTypeString)
     {
-        if (meshTypeString == "Square Grid")
+        if (meshTypeString == "2D Square Grid")
         {
-            dimension_A_label->setText("Length = ");
-            dimension_B_label->setText("Width = ");
+            dimension_A_label->setText("Length in X = ");
+            dimension_B_label->setText("Length in Y = ");
+            meshFormLayout->removeRow(dimension_C);
+        }
+        else if (meshTypeString == "3D Square Grid")
+        {
+            dimension_A_label->setText("Length in X = ");
+            dimension_B_label->setText("Length in Y = ");
+
+            dimension_C = new QLineEdit();
+            dimension_C->setValidator(dim_validator);
+            dimension_C_label = new QLabel(tr("Length in Z = "));
+            meshFormLayout->addRow(dimension_C_label, dimension_C);
         }
         else if (meshTypeString == "Radial Grid")
         {
             dimension_A_label->setText("Inner Radius = ");
             dimension_B_label->setText("Outer Radius = ");
+            meshFormLayout->removeRow(dimension_C);
         }
     }
 
     void clickedRunButton()
     {
-        if (meshType->currentText() == "Square Grid")
+        int pos = 0;
+        QString dimension_A_text = dimension_A->text();
+        QString dimension_B_text = dimension_B->text();
+        QString boundaryValue_text = boundaryValue->text();
+        
+        if (dim_validator->validate(dimension_A_text, pos) != QValidator::Acceptable ||
+            dim_validator->validate(dimension_B_text, pos) != QValidator::Acceptable ||
+            validator->validate(boundaryValue_text, pos) != QValidator::Acceptable)
         {
-            _dimensions[0] = dimension_A->text().toInt();
-            _dimensions[1] = dimension_B->text().toInt();
+            QMessageBox::information(this, "Error",
+            "Please set all Parameters before solving the Poisson Problem!");
+            return;
+        }
+
+        if (meshType->currentText() == "2D Square Grid")
+        {
+            _boundaryValue = boundaryValue->text().toInt(); // TODO
+            _dimensions2D[0] = dimension_A->text().toInt();
+            _dimensions2D[1] = dimension_B->text().toInt();
             _refinement = refinement->currentText().toInt();
             _shapeFunction = shapeFunction->currentText().toInt();
 
-            solvePoissonProblem(_dimensions, _refinement, _shapeFunction);
-            visualizationWidget->openFile("solution.vtk");
+            Poisson<2> poissonProblem2D(_dimensions2D, _refinement, _shapeFunction);
+            poissonProblem2D.run();
+            visualizationWidget->openFile("solution-2d.vtk");
+        }
+        else if (meshType->currentText() == "3D Square Grid")
+        {
+            QString dimension_C_text = dimension_C->text();
+
+            if (dim_validator->validate(dimension_C_text, pos) != QValidator::Acceptable)
+            {
+                QMessageBox::information(this, "Error",
+                "Please set all Parameters before solving the Poisson Problem!");
+                return;
+            }
+
+            _boundaryValue = boundaryValue->text().toInt(); // TODO
+            _dimensions3D[0] = dimension_A->text().toInt();
+            _dimensions3D[1] = dimension_B->text().toInt();
+            _dimensions3D[2] = dimension_C->text().toInt();
+            _refinement = refinement->currentText().toInt();
+            _shapeFunction = shapeFunction->currentText().toInt();
+
+            Poisson<3> poissonProblem3D(_dimensions3D, _refinement, _shapeFunction);
+            poissonProblem3D.run();
+            visualizationWidget->openFile("solution-3d.vtk");
         }
         else if (meshType->currentText() == "Radial Grid")
         {
