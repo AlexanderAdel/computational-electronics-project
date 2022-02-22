@@ -179,7 +179,7 @@ public slots:
 
         if (meshType->currentText() == "2D Square Grid")
         {
-            _boundaryValue = boundaryValue->text().toInt(); // TODO
+            _boundaryValue = boundaryValue->text().toInt();
             _dimensions2D[0] = dimension_A->text().toInt();
             _dimensions2D[1] = dimension_B->text().toInt();
             _refinement = refinement->currentText().toInt();
@@ -200,7 +200,7 @@ public slots:
                 return;
             }
 
-            _boundaryValue = boundaryValue->text().toInt(); // TODO
+            _boundaryValue = boundaryValue->text().toInt();
             _dimensions3D[0] = dimension_A->text().toInt();
             _dimensions3D[1] = dimension_B->text().toInt();
             _dimensions3D[2] = dimension_C->text().toInt();
@@ -213,9 +213,20 @@ public slots:
         }
         else if (meshType->currentText() == "Radial Grid")
         {
-            _dimensionsRad[0] = 2.0;
-            _dimensionsRad[1] = 4.0;
-            Radial_Poisson poissonCircle(_dimensionsRad, 3, 2, 1);
+            _boundaryValue = boundaryValue->text().toInt();
+            _dimensionsRad[0] = dimension_A->text().toDouble();
+            _dimensionsRad[1] = dimension_B->text().toDouble();
+            _refinement = refinement->currentText().toInt();
+            _shapeFunction = shapeFunction->currentText().toInt();
+
+            if (_dimensionsRad[0] >= _dimensionsRad[1])
+            {
+                QMessageBox::information(this, "Error",
+                "Inner Radius has to be smaller than Outer Radius!");
+                return;
+            }
+
+            Radial_Poisson poissonCircle(_dimensionsRad, _refinement, _shapeFunction, _boundaryValue);
             poissonCircle.run();
             visualizationWidget->openFile("solution-2d.vtk");
         }
