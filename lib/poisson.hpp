@@ -44,6 +44,29 @@
 using namespace dealii;
 
 /**
+ *  Class for denoting non-homogenuous Dirichlet boundary values.
+ *  Function of dim-dimensional space variable. 
+ */
+template <int dim>
+class BoundaryValues : public Function<dim>
+{
+public:
+  virtual double value(const Point<dim> & p,
+                       const unsigned int component = 0) const override;
+};
+
+/**
+	 * Function to apply boundary values. For simplicity, we choose x^2+y^2 in 2D and x^2+y^2+z^2 in 3D which is equal to the sqare of the vector from
+   * the origin to the point, where we evaluate the function. 
+	 */
+template <int dim>
+double BoundaryValues<dim>::value(const Point<dim> &p,
+                                  const unsigned int /*component*/) const
+{
+  return p.square();
+}
+
+/**
  *  Class for calculating the poisson problem on a radial domain. 
  */
 class Radial_Poisson
@@ -61,7 +84,7 @@ private:
   std::vector<double> dimensions;
   int refinement;                       //!< Refinement of triangulation
   int bc;                               //!< Constant boundary condition
-
+  
 
   Triangulation<2> triangulation;       //!< Collection of cells that jointly cover the domain
   FE_Q<2>          fe;                  //!< Implementation of scalar Lagrange finite element  that yields the finite element space.
@@ -82,7 +105,7 @@ template <int dim>
 class Poisson
 {
 public:
-  Poisson(std::vector<int> _dimensions, int _refinement, int _shape_function, int _bc);
+  Poisson(std::vector<int> _dimensions, int _refinement, int _shape_function, int _bc, bool _homogeneous);
   void run(int _bc);
   void run();
 private:
@@ -94,6 +117,7 @@ private:
 
   int refinement;                       //!< Refinement of triangulation
   int bc;                               //!< Constant boundary condition
+  bool homogeneous;                     //!< If false, non-homogeneous BC are applied
 
 
   Triangulation<dim> triangulation;     //!< Collection of cells that jointly cover the domain
@@ -119,8 +143,8 @@ private:
 template <int dim>
 Poisson<dim>::Poisson(std::vector<int> _dimensions, 
                       int _refinement, 
-                      int _shape_function, int _bc) 
-  : refinement(_refinement), bc(_bc), fe(_shape_function), dof_handler(triangulation)
+                      int _shape_function, int _bc, bool _homogeneous) 
+  : refinement(_refinement), bc(_bc), homogeneous(_homogeneous), fe(_shape_function), dof_handler(triangulation)
 {
   for(int i = 0; i < dim; i++){
     point[i] = _dimensions[i];
@@ -213,7 +237,11 @@ void Poisson<dim>::assemble_system()
 
     std::map<types::global_dof_index, double> boundary_values;
 
-    VectorTools::interpolate_boundary_values(dof_handler,0,Functions::ConstantFunction<dim>(bc),boundary_values);
+    if(homogeneous)
+      VectorTools::interpolate_boundary_values(dof_handler,0,Functions::ConstantFunction<dim>(bc),boundary_values);
+
+    else  
+      VectorTools::interpolate_boundary_values(dof_handler,0,BoundaryValues<dim>(),boundary_values);
 
     MatrixTools::apply_boundary_values(boundary_values,system_matrix,solution,system_rhs);
 
