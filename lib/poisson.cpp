@@ -1,7 +1,16 @@
 #include "poisson.hpp"
 using namespace dealii;
 
-
+/**
+	 * Constructor for Radial Poisson class
+	 *
+	 * \param _dimensions Dimensions of 2D donut defined by two values, inner and outer radius
+   * \param _refinement Refine all cells _refinement times. In each iteration, loops over all cells and refines each cell uniformly into  2^{dim}  children. 
+   * The end result is the number of cells increased by a factor  2^{dim x _refinement} 
+   * \param _shape_function Degree of continuous, piecewise polynomials for finite element space of Lagrangian finite elements.
+   * \param _bc Constant Dirichlet boundary values 
+	 * \return Constructed radial poisson class object
+	 */
 Radial_Poisson::Radial_Poisson(std::vector<double> _dimensions, 
                       int _refinement, 
                       int _shape_function, int _bc) 
@@ -10,6 +19,12 @@ Radial_Poisson::Radial_Poisson(std::vector<double> _dimensions,
   dimensions = _dimensions;
 }
 
+/**
+	 * Function to create a circular grid with a hole from the given coordinates. The triangulation is refined refinement times to yield a triangulation
+   * with 2^{dim x refinement} cells. 
+ 	 *
+	 * 
+	 */
 void Radial_Poisson::make_grid()
 {
   const Point<2> center(1, 0);
@@ -34,7 +49,11 @@ void Radial_Poisson::make_grid()
     }
 }
 
-
+/**
+	 * Enumerate all degrees of freedom and set up matrix and vector objects to hold the system data. The number of degrees of freedom depends on the 
+   * polynomial degree of the finite elements. 
+ 	 * 
+	 */
 void Radial_Poisson::setup_system()
 {
   dof_handler.distribute_dofs(fe);
@@ -48,7 +67,10 @@ void Radial_Poisson::setup_system()
   system_rhs.reinit(dof_handler.n_dofs());
 }
 
-
+/**
+	 * Compute the entries of the matrix and right hand side that form the linear system from which the solutio is computed. 
+ 	 * 
+	 */
 void Radial_Poisson::assemble_system()
 {
     QGauss<2> quadrature_formula(fe.degree + 1);
@@ -97,6 +119,11 @@ void Radial_Poisson::assemble_system()
 
 }
 
+/**
+	 * Solve the discretized equation. The Conjugate Gradients algorithm is used as a solver. The stopping criteria is either 1000 iterations or a residual below
+   * 1e-12. The identity matrix is used as a preconditioner for the solver. 
+ 	 * 
+	 */
 void Radial_Poisson::solve()
 {
   SolverControl            solver_control(1000, 1e-12);
@@ -106,6 +133,10 @@ void Radial_Poisson::solve()
             << " CG iterations needed to obtain convergence." << std::endl;
 }
 
+/**
+	 * Finally, the results are written to a file. The format is VTK. 
+ 	 * 
+	 */
 void Radial_Poisson::output_results() const
 {
   DataOut<2> data_out;
@@ -116,7 +147,11 @@ void Radial_Poisson::output_results() const
   data_out.write_vtk(output);
 }
 
-
+/**
+	 * The run function is the main function of the class, that will trigger all other functions. Since there is only one API-like access point to the class,
+   * the system is ot error prone. 
+ 	 * 
+	 */
 void Radial_Poisson::run()
 {
   std::cout << "Solving radial problem in 2 space dimensions."

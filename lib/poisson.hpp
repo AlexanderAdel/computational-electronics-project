@@ -1,3 +1,8 @@
+/**
+ * \file poisson.hpp
+ *
+ * Poisson solver header file
+ */
 
 #pragma once
 
@@ -51,17 +56,17 @@ private:
   void output_results() const;
 
   std::vector<double> dimensions;
-  int refinement;
-  int bc;
+  int refinement;                       //!< Refinement of triangulation
+  int bc;                               //!< Constant boundary condition
 
 
-  Triangulation<2> triangulation;
-  FE_Q<2>          fe;
-  DoFHandler<2>    dof_handler;
-  SparsityPattern      sparsity_pattern;
-  SparseMatrix<double> system_matrix;
-  Vector<double> solution;
-  Vector<double> system_rhs;
+  Triangulation<2> triangulation;       //!< Collection of cells that jointly cover the domain
+  FE_Q<2>          fe;                  //!< Implementation of scalar Lagrange finite element  that yields the finite element space.
+  DoFHandler<2>    dof_handler;         //!< Global numbering of degrees of freedom
+  SparsityPattern      sparsity_pattern;  //!< Class stores sparsity pattern in the CSR format
+  SparseMatrix<double> system_matrix;   //!< Sparse matrix to store entry values in the locations denoted by SparsityPattern
+  Vector<double> solution;              //!< Vector containing the solution 
+  Vector<double> system_rhs;            //!< Vector containing the right hand side of the system
 };
 
 
@@ -73,6 +78,7 @@ class Poisson
 {
 public:
   Poisson(std::vector<int> _dimensions, int _refinement, int _shape_function, int _bc);
+  void run(int _bc);
   void run();
 private:
   void make_grid();
@@ -81,21 +87,30 @@ private:
   void solve();
   void output_results() const;
 
-  int refinement;
-  int bc;
+  int refinement;                       //!< Refinement of triangulation
+  int bc;                               //!< Constant boundary condition
 
 
-  Triangulation<dim> triangulation;
-  FE_Q<dim>          fe;
-  Point<dim> point;
-  DoFHandler<dim>    dof_handler;
-  SparsityPattern      sparsity_pattern;
-  SparseMatrix<double> system_matrix;
-  Vector<double> solution;
-  Vector<double> system_rhs;
+  Triangulation<dim> triangulation;     //!< Collection of cells that jointly cover the domain
+  FE_Q<dim>          fe;                //!< Implementation of scalar Lagrange finite element  that yields the finite element space.
+  Point<dim> point;                     //!< Diagonally opposite corner point of hyper rectangle (p1 is origin)
+  DoFHandler<dim>    dof_handler;       //!< Global numbering of degrees of freedom
+  SparsityPattern      sparsity_pattern;  //!< Class stores sparsity pattern in the CSR format
+  SparseMatrix<double> system_matrix;   //!< Sparse matrix to store entry values in the locations denoted by SparsityPattern
+  Vector<double> solution;              //!< Vector containing the solution 
+  Vector<double> system_rhs;            //!< Vector containing the right hand side of the system
 };
 
-
+/**
+	 * Constructor for Poisson class
+	 *
+	 * \param _dimensions Dimensions of hyper rectangle defined by two points: origin and point with dimensions coordinates.
+   * \param _refinement Refine all cells _refinement times. In each iteration, loops over all cells and refines each cell uniformly into  2^{dim}  children. 
+   * The end result is the number of cells increased by a factor  2^{dim x _refinement} 
+   * \param _shape_function Degree of continuous, piecewise polynomials for finite element space of Lagrangian finite elements.
+   * \param _bc Constant Dirichlet boundary values 
+	 * \return Constructed poisson class object
+	 */
 template <int dim>
 Poisson<dim>::Poisson(std::vector<int> _dimensions, 
                       int _refinement, 
@@ -105,9 +120,16 @@ Poisson<dim>::Poisson(std::vector<int> _dimensions,
   for(int i = 0; i < dim; i++){
     point[i] = _dimensions[i];
   }
+  make_grid();
+  setup_system();
 }
 
-
+/**
+	 * Function to create a hyper reactangular grid from the given coordinates and the origin. The triangulation is refined refinement times to yield a triangulation
+   * with 2^{dim x refinement} cells. 
+ 	 *
+	 * 
+	 */
 template <int dim>
 void Poisson<dim>::make_grid()
 {
@@ -120,7 +142,11 @@ void Poisson<dim>::make_grid()
             << std::endl;
 }
 
-
+/**
+	 * Enumerate all degrees of freedom and set up matrix and vector objects to hold the system data. The number of degrees of freedom depends on the 
+   * polynomial degree of the finite elements. 
+ 	 * 
+	 */
 template <int dim>
 void Poisson<dim>::setup_system()
 {
@@ -135,10 +161,14 @@ void Poisson<dim>::setup_system()
   system_rhs.reinit(dof_handler.n_dofs());
 }
 
-
+/**
+	 * Compute the entries of the matrix and right hand side that form the linear system from which the solutio is computed. 
+ 	 * 
+	 */
 template <int dim>
 void Poisson<dim>::assemble_system()
 {
+    
     QGauss<dim> quadrature_formula(fe.degree + 1);
     FEValues<dim> fe_values(fe, quadrature_formula, update_values | update_gradients | update_JxW_values);
     const unsigned int dofs_per_cell = fe.n_dofs_per_cell();
@@ -178,14 +208,17 @@ void Poisson<dim>::assemble_system()
 
     std::map<types::global_dof_index, double> boundary_values;
 
-    /* Change boundary value here, with either ZeroFunction<2>() or ConstantFunction<2>(value)*/
     VectorTools::interpolate_boundary_values(dof_handler,0,Functions::ConstantFunction<dim>(bc),boundary_values);
 
     MatrixTools::apply_boundary_values(boundary_values,system_matrix,solution,system_rhs);
 
 }
 
-
+/**
+	 * Solve the discretized equation. The Conjugate Gradients algorithm is used as a solver. The stopping criteria is either 1000 iterations or a residual below
+   * 1e-12. The identity matrix is used as a preconditioner for the solver. 
+ 	 * 
+	 */
 template <int dim>
 void Poisson<dim>::solve()
 {
@@ -196,7 +229,10 @@ void Poisson<dim>::solve()
             << " CG iterations needed to obtain convergence." << std::endl;
 }
 
-
+/**
+	 * Finally, the results are written to a file. The format is VTK. 
+ 	 * 
+	 */
 template <int dim>
 void Poisson<dim>::output_results() const
 {
@@ -208,14 +244,34 @@ void Poisson<dim>::output_results() const
   data_out.write_vtk(output);
 }
 
+/**
+	 * The run function is the main function of the class, that will trigger all other functions. Since there is only one API-like access point to the class,
+   * the system is ot error prone. 
+   * 
+   * \param _bc Boundary condition for changed parameters, the grid can be reused. 
+ 	 * 
+	 */
+template <int dim>
+void Poisson<dim>::run(int _bc)
+{
+  bc = _bc;
+  std::cout << "Solving problem in " << dim << " space dimensions."
+            << std::endl;
+  assemble_system();
+  solve();
+  output_results();
+}
 
+/**
+	 * The run function is the main function of the class, that will trigger all other functions. Since there is only one API-like access point to the class,
+   * the system is ot error prone. 
+ 	 * 
+	 */
 template <int dim>
 void Poisson<dim>::run()
 {
   std::cout << "Solving problem in " << dim << " space dimensions."
             << std::endl;
-  make_grid();
-  setup_system();
   assemble_system();
   solve();
   output_results();
