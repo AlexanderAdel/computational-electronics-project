@@ -43,6 +43,9 @@
 
 using namespace dealii;
 
+/**
+ *  Class for calculating the poisson problem on a radial domain. 
+ */
 class Radial_Poisson
 {
 public:
@@ -72,7 +75,9 @@ private:
 
 
 
-
+/**
+ *  Class for calculating the poisson problem on a hyper rectangular domain in 2D and 3D.
+ */
 template <int dim>
 class Poisson
 {
