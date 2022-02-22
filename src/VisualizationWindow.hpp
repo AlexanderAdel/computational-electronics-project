@@ -34,7 +34,6 @@ private:
     QFormLayout* meshFormLayout;
 
     QComboBox* meshType;
-    QLineEdit* boundaryValue;
 
     QValidator* validator;
     QValidator* dim_validator;
@@ -46,6 +45,12 @@ private:
     QLabel* dimension_B_label;
     QLabel* dimension_C_label;
 
+    QGroupBox* BCGroupBox;
+    QFormLayout* BCFormLayout;
+
+    QComboBox* boundaryCondition;
+    QLineEdit* boundaryValue;
+
     QGroupBox* FEMGroupBox;
     QFormLayout* FEMFormLayout;
 
@@ -55,12 +60,19 @@ private:
     QPushButton* runButton;
 
     bool generatedGrid = false; // Grid Flag
+    bool constantBC = false;
+
     std::vector<int> _dimensions2D = std::vector<int>(2, 0);
     std::vector<int> _dimensions3D = std::vector<int>(3, 0);
     std::vector<double> _dimensionsRad = std::vector<double>(2, 0.0);
     int _boundaryValue = 0;
     int _refinement = 0;
     int _shapeFunction = 0;
+    QString _BC;
+
+    Poisson<2>* poissonProblem2D;
+    Poisson<3>* poissonProblem3D;
+    Radial_Poisson* poissonProblemRad;
 
 public:
     VisualizationWindow(QWidget* parent = nullptr) : QMainWindow(parent)
@@ -74,9 +86,9 @@ public:
 
         visualizationWidget = new VisualizationWidget();
         visualizationWidget->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
-        gridLayout->addWidget(visualizationWidget, 0, 0, 3, 1);
+        gridLayout->addWidget(visualizationWidget, 0, 0, 4, 1);
 
-        meshGroupBox = new QGroupBox(tr("MESH PROPERTIES"));
+        meshGroupBox = new QGroupBox(tr("MESH PARAMETERS"));
         meshGroupBox->setSizePolicy(QSizePolicy::Minimum, QSizePolicy::Minimum);
         meshFormLayout = new QFormLayout;
 
@@ -84,10 +96,6 @@ public:
         meshType->addItem("2D Square Grid");
         meshType->addItem("3D Square Grid");
         meshType->addItem("Radial Grid");
-
-        validator = new QIntValidator(0, 999);
-        boundaryValue = new QLineEdit();
-        boundaryValue->setValidator(validator);
 
         dim_validator = new QIntValidator(1, 999);
         dimension_A = new QLineEdit();
@@ -101,11 +109,24 @@ public:
         QObject::connect(meshType, SIGNAL(currentIndexChanged(const QString&)),
                          this, SLOT(switchedMeshType(const QString&)));
 
-        meshFormLayout->addRow(new QLabel(tr("Boundary Value = ")), boundaryValue);
         meshFormLayout->addRow(dimension_A_label, dimension_A);
         meshFormLayout->addRow(dimension_B_label, dimension_B);
         meshGroupBox->setLayout(meshFormLayout);
         gridLayout->addWidget(meshGroupBox, 0, 1);
+
+        boundaryCondition = new QComboBox();
+        boundaryCondition->addItem("Euclidian Distance");
+        boundaryCondition->addItem("Constant");
+        QObject::connect(boundaryCondition, SIGNAL(currentIndexChanged(const QString&)),
+                         this, SLOT(switchedBCType(const QString&)));
+        validator = new QIntValidator(0, 999);
+
+        BCGroupBox = new QGroupBox(tr("BOUNDARY PARAMETERS"));
+        BCGroupBox->setSizePolicy(QSizePolicy::Minimum, QSizePolicy::Minimum);
+        BCFormLayout = new QFormLayout;
+        BCFormLayout->addRow(new QLabel(tr("Boundary Condition = ")), boundaryCondition);
+        BCGroupBox->setLayout(BCFormLayout);
+        gridLayout->addWidget(BCGroupBox, 1, 1);
 
         refinement = new QComboBox();
         refinement->addItem("1");
@@ -117,19 +138,19 @@ public:
         shapeFunction->addItem("2");
         shapeFunction->addItem("3");
 
-        FEMGroupBox = new QGroupBox(tr("FEM PROPERTIES"));
+        FEMGroupBox = new QGroupBox(tr("FEM PARAMETERS"));
         FEMGroupBox->setSizePolicy(QSizePolicy::Minimum, QSizePolicy::Minimum);
         FEMFormLayout = new QFormLayout;
         FEMFormLayout->addRow(new QLabel(tr("Refinement Level = ")), refinement);
         FEMFormLayout->addRow(new QLabel(tr("Shape Function Order = ")), shapeFunction);
         FEMGroupBox->setLayout(FEMFormLayout);
-        gridLayout->addWidget(FEMGroupBox, 1, 1);
+        gridLayout->addWidget(FEMGroupBox, 2, 1);
 
         runButton = new QPushButton(this);
         runButton->setSizePolicy(QSizePolicy::Preferred, QSizePolicy::Preferred);
         runButton->setText("Solve Poisson Problem");
         QObject::connect(runButton, SIGNAL(clicked()), this, SLOT(clickedRunButton()));
-        gridLayout->addWidget(runButton, 2, 1);
+        gridLayout->addWidget(runButton, 3, 1);
     }
 
     ~VisualizationWindow() {}
@@ -161,33 +182,88 @@ public slots:
         }
     }
 
+    void switchedBCType(const QString& BCTypeString)
+    {
+        if (BCTypeString == "Constant")
+        { 
+            constantBC = true; 
+
+            boundaryValue = new QLineEdit();
+            boundaryValue->setValidator(validator);
+            BCFormLayout->addRow(new QLabel(tr("Boundary Value = ")), boundaryValue);
+        }
+        else if (BCTypeString == "Euclidian Distance")
+        { 
+            constantBC = false; 
+
+            BCFormLayout->removeRow(boundaryValue);
+        }
+    }
+
     void clickedRunButton()
     {
         int pos = 0;
         QString dimension_A_text = dimension_A->text();
         QString dimension_B_text = dimension_B->text();
-        QString boundaryValue_text = boundaryValue->text();
         
         if (dim_validator->validate(dimension_A_text, pos) != QValidator::Acceptable ||
-            dim_validator->validate(dimension_B_text, pos) != QValidator::Acceptable ||
-            validator->validate(boundaryValue_text, pos) != QValidator::Acceptable)
+            dim_validator->validate(dimension_B_text, pos) != QValidator::Acceptable)
         {
             QMessageBox::information(this, "Error",
             "Please set all Parameters before solving the Poisson Problem!");
             return;
         }
 
+        if (constantBC == true)
+        {
+            QString boundaryValue_text = boundaryValue->text();
+
+            if (validator->validate(boundaryValue_text, pos) != QValidator::Acceptable)
+            {
+                QMessageBox::information(this, "Error",
+                "Please set all Parameters before solving the Poisson Problem!");
+                return;
+            }
+        }
+
         if (meshType->currentText() == "2D Square Grid")
         {
-            _boundaryValue = boundaryValue->text().toInt();
+            if (_dimensions2D[0] == dimension_A->text().toInt() &&
+                _dimensions2D[1] == dimension_B->text().toInt() &&
+                _refinement == refinement->currentText().toInt() &&
+                _shapeFunction == shapeFunction->currentText().toInt() &&
+                _BC == boundaryCondition->currentText())
+            {
+                if (boundaryCondition->currentText() == "Euclidian Distance" ||
+                    _boundaryValue == boundaryValue->text().toInt())
+                {
+                    QMessageBox::information(this, "Error",
+                    "Poisson Problem already solved!");
+                    return;
+                }
+
+                if (boundaryCondition->currentText() == "Constant")
+                { _boundaryValue = boundaryValue->text().toInt(); }
+
+                poissonProblem2D->run(_boundaryValue);
+                visualizationWidget->openFile("solution-2d.vtk", "Same Grid reused.");
+                return;
+            }
+
             _dimensions2D[0] = dimension_A->text().toInt();
             _dimensions2D[1] = dimension_B->text().toInt();
             _refinement = refinement->currentText().toInt();
             _shapeFunction = shapeFunction->currentText().toInt();
+            _BC = boundaryCondition->currentText();
 
-            Poisson<2> poissonProblem2D(_dimensions2D, _refinement, _shapeFunction, _boundaryValue, false);
-            poissonProblem2D.run();
-            visualizationWidget->openFile("solution-2d.vtk");
+            if (boundaryCondition->currentText() == "Constant")
+            { _boundaryValue = boundaryValue->text().toInt(); }
+
+            //Poisson<2> poissonProblem2D(_dimensions2D, _refinement, _shapeFunction, _boundaryValue, constantBC);
+            //poissonProblem2D.run();
+            poissonProblem2D = new Poisson<2>(_dimensions2D, _refinement, _shapeFunction, _boundaryValue, constantBC);
+            poissonProblem2D->run();
+            visualizationWidget->openFile("solution-2d.vtk", "New Grid generated.");
         }
         else if (meshType->currentText() == "3D Square Grid")
         {
@@ -200,24 +276,86 @@ public slots:
                 return;
             }
 
-            _boundaryValue = boundaryValue->text().toInt();
+            if (_dimensions3D[0] == dimension_A->text().toInt() &&
+                _dimensions3D[1] == dimension_B->text().toInt() &&
+                _dimensions3D[2] == dimension_C->text().toInt() &&
+                _refinement == refinement->currentText().toInt() &&
+                _shapeFunction == shapeFunction->currentText().toInt() &&
+                _BC == boundaryCondition->currentText())
+            {
+                if (boundaryCondition->currentText() == "Euclidian Distance" ||
+                    _boundaryValue == boundaryValue->text().toInt())
+                {
+                    QMessageBox::information(this, "Error",
+                    "Poisson Problem already solved!");
+                    return;
+                }
+
+                if (boundaryCondition->currentText() == "Constant")
+                { _boundaryValue = boundaryValue->text().toInt(); }
+
+                poissonProblem3D->run(_boundaryValue);
+                visualizationWidget->openFile("solution-3d.vtk", "Same Grid reused.");
+                return;
+            }
+
             _dimensions3D[0] = dimension_A->text().toInt();
             _dimensions3D[1] = dimension_B->text().toInt();
             _dimensions3D[2] = dimension_C->text().toInt();
             _refinement = refinement->currentText().toInt();
             _shapeFunction = shapeFunction->currentText().toInt();
+            _BC = boundaryCondition->currentText();
 
-            Poisson<3> poissonProblem3D(_dimensions3D, _refinement, _shapeFunction, _boundaryValue, false);
-            poissonProblem3D.run();
-            visualizationWidget->openFile("solution-3d.vtk");
+            if (boundaryCondition->currentText() == "Constant")
+            { _boundaryValue = boundaryValue->text().toInt(); }
+
+            //Poisson<3> poissonProblem3D(_dimensions3D, _refinement, _shapeFunction, _boundaryValue, constantBC);
+            //poissonProblem3D.run();
+            poissonProblem3D = new Poisson<3>(_dimensions3D, _refinement, _shapeFunction, _boundaryValue, constantBC);
+            poissonProblem3D->run();
+            visualizationWidget->openFile("solution-3d.vtk", "New Grid generated.");
         }
         else if (meshType->currentText() == "Radial Grid")
         {
-            _boundaryValue = boundaryValue->text().toInt();
+            if (boundaryCondition->currentText() == "Euclidian Distance")
+            {
+                QMessageBox::information(this, "Error",
+                "Only constant boundary conditions are supported for the Radial Grid!");
+                return;
+            }
+
+            /*
+            if (_dimensions3D[0] == dimension_A->text().toInt() &&
+                _dimensions3D[1] == dimension_B->text().toInt() &&
+                _dimensions3D[2] == dimension_C->text().toInt() &&
+                _refinement == refinement->currentText().toInt() &&
+                _shapeFunction == shapeFunction->currentText().toInt() &&
+                _BC == boundaryCondition->currentText())
+            {
+                if (_boundaryValue == boundaryValue->text().toInt())
+                {
+                    QMessageBox::information(this, "Error",
+                    "Poisson Problem already solved!");
+                    return;
+                }
+
+                if (boundaryCondition->currentText() == "Constant")
+                { _boundaryValue = boundaryValue->text().toInt(); }
+
+                poissonProblemRad->run(_boundaryValue);
+                visualizationWidget->openFile("solution-2d.vtk", "Same Grid reused.");
+                return;
+            }
+            */
+
             _dimensionsRad[0] = dimension_A->text().toDouble();
             _dimensionsRad[1] = dimension_B->text().toDouble();
             _refinement = refinement->currentText().toInt();
             _shapeFunction = shapeFunction->currentText().toInt();
+            _BC = boundaryCondition->currentText();
+
+            if (boundaryCondition->currentText() == "Constant")
+            { _boundaryValue = boundaryValue->text().toInt(); }
 
             if (_dimensionsRad[0] >= _dimensionsRad[1])
             {
@@ -226,9 +364,11 @@ public slots:
                 return;
             }
 
-            Radial_Poisson poissonCircle(_dimensionsRad, _refinement, _shapeFunction, _boundaryValue);
-            poissonCircle.run();
-            visualizationWidget->openFile("solution-2d.vtk");
+            //Radial_Poisson poissonCircle(_dimensionsRad, _refinement, _shapeFunction, _boundaryValue);
+            //poissonCircle.run();
+            poissonProblemRad = new Radial_Poisson(_dimensionsRad, _refinement, _shapeFunction, _boundaryValue);
+            poissonProblemRad->run();
+            visualizationWidget->openFile("solution-2d.vtk", "New Grid generated.");
         }
     }
 }; 

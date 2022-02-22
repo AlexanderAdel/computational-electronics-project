@@ -113,7 +113,7 @@ public:
         renderWindow()->Render();
     }
 
-    void openFile(const QString& fileName)
+    void openFile(const QString& fileName, const char* description)
     {
         vtkNew<vtkDataSetReader> reader;
         reader->SetFileName(fileName.toStdString().c_str());
@@ -123,7 +123,7 @@ public:
         if (dataSet != nullptr) 
         { 
             this->visualizeDataSet(dataSet, 
-                                   "Solution of the Poisson Equation",
+                                   description,
                                    "Electrostatic Potential [V]"); 
         }
     }
