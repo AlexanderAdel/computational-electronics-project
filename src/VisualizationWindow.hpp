@@ -228,6 +228,7 @@ public slots:
 
         if (meshType->currentText() == "2D Square Grid")
         {
+            /*
             if (_dimensions2D[0] == dimension_A->text().toInt() &&
                 _dimensions2D[1] == dimension_B->text().toInt() &&
                 _refinement == refinement->currentText().toInt() &&
@@ -249,6 +250,7 @@ public slots:
                 visualizationWidget->openFile("solution-2d.vtk", "Same Grid reused.");
                 return;
             }
+            */
 
             _dimensions2D[0] = dimension_A->text().toInt();
             _dimensions2D[1] = dimension_B->text().toInt();
@@ -259,8 +261,6 @@ public slots:
             if (boundaryCondition->currentText() == "Constant")
             { _boundaryValue = boundaryValue->text().toInt(); }
 
-            //Poisson<2> poissonProblem2D(_dimensions2D, _refinement, _shapeFunction, _boundaryValue, constantBC);
-            //poissonProblem2D.run();
             poissonProblem2D = new Poisson<2>(_dimensions2D, _refinement, _shapeFunction, _boundaryValue, constantBC);
             poissonProblem2D->run();
             visualizationWidget->openFile("solution-2d.vtk", "New Grid generated.");
@@ -276,6 +276,7 @@ public slots:
                 return;
             }
 
+            /*
             if (_dimensions3D[0] == dimension_A->text().toInt() &&
                 _dimensions3D[1] == dimension_B->text().toInt() &&
                 _dimensions3D[2] == dimension_C->text().toInt() &&
@@ -298,6 +299,7 @@ public slots:
                 visualizationWidget->openFile("solution-3d.vtk", "Same Grid reused.");
                 return;
             }
+            */
 
             _dimensions3D[0] = dimension_A->text().toInt();
             _dimensions3D[1] = dimension_B->text().toInt();
@@ -309,8 +311,6 @@ public slots:
             if (boundaryCondition->currentText() == "Constant")
             { _boundaryValue = boundaryValue->text().toInt(); }
 
-            //Poisson<3> poissonProblem3D(_dimensions3D, _refinement, _shapeFunction, _boundaryValue, constantBC);
-            //poissonProblem3D.run();
             poissonProblem3D = new Poisson<3>(_dimensions3D, _refinement, _shapeFunction, _boundaryValue, constantBC);
             poissonProblem3D->run();
             visualizationWidget->openFile("solution-3d.vtk", "New Grid generated.");
@@ -364,8 +364,6 @@ public slots:
                 return;
             }
 
-            //Radial_Poisson poissonCircle(_dimensionsRad, _refinement, _shapeFunction, _boundaryValue);
-            //poissonCircle.run();
             poissonProblemRad = new Radial_Poisson(_dimensionsRad, _refinement, _shapeFunction, _boundaryValue);
             poissonProblemRad->run();
             visualizationWidget->openFile("solution-2d.vtk", "New Grid generated.");

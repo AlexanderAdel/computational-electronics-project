@@ -30,6 +30,8 @@
 #include <vtkPolyData.h>
 #include <vtkPolyDataMapper.h>
 
+#include <vtkBoxClipDataSet.h>
+
 /*!
  *  @brief Visualization Widget.
  */
@@ -50,6 +52,8 @@ private:
     vtkNew<vtkLookupTable> lut;
     vtkNew<vtkScalarBarActor> scalarBar;
     vtkNew<vtkNamedColors> colors;
+
+    vtkNew<vtkBoxClipDataSet> boxClip;
 
 public:
     VisualizationWidget(QWidget* parent = nullptr) : QVTKOpenGLNativeWidget(parent)
@@ -90,7 +94,41 @@ public:
     {
         renderer->RemoveAllViewProps();
 
-        mapper->SetInputData(dataSet);
+        double bounds[6];
+        dataSet->GetBounds(bounds);
+
+        if (bounds[5] != 0.0) // 3D
+        {
+            double minBoxPoint[3];
+            double maxBoxPoint[3];
+            minBoxPoint[0] = (bounds[1] - bounds[0]) / 2.0 + bounds[0];
+            minBoxPoint[1] = (bounds[3] - bounds[2]) / 2.0 + bounds[2];
+            minBoxPoint[2] = (bounds[5] - bounds[4]) / 2.0 + bounds[4];
+            maxBoxPoint[0] = bounds[1];
+            maxBoxPoint[1] = bounds[3];
+            maxBoxPoint[2] = bounds[5];
+
+            boxClip->SetInputData(dataSet);
+            boxClip->GenerateClippedOutputOn();
+
+            const double minusx[] = {-1.0, -0.5, 0.0};
+            const double minusy[] = {0.0, -1.0, 0.0};
+            const double minusz[] = {0.0, 0.0, -1.0};
+            const double plusx[] = {1.0, 0.0, 0.0};
+            const double plusy[] = {0.0, 1.0, 0.0};
+            const double plusz[] = {0.0, 0.0, 1.0};
+            boxClip->SetBoxClip(minusx, minBoxPoint, minusy, minBoxPoint, minusz,
+                                minBoxPoint, plusx, maxBoxPoint, plusy, maxBoxPoint,
+                                plusz, maxBoxPoint);
+
+            mapper->SetInputConnection(boxClip->GetOutputPort(1));
+        }
+
+        if (bounds[5] == 0.0) // 2D
+        {
+            mapper->SetInputData(dataSet);
+        }
+
         mapper->SetScalarRange(dataSet->GetScalarRange());
         mapper->SetLookupTable(lut);
         actor->SetMapper(mapper);
