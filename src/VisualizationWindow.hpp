@@ -57,6 +57,7 @@ private:
     bool generatedGrid = false; // Grid Flag
     std::vector<int> _dimensions2D = std::vector<int>(2, 0);
     std::vector<int> _dimensions3D = std::vector<int>(3, 0);
+    std::vector<double> _dimensionsRad = std::vector<double>(2, 0.0);
     int _boundaryValue = 0;
     int _refinement = 0;
     int _shapeFunction = 0;
@@ -212,7 +213,11 @@ public slots:
         }
         else if (meshType->currentText() == "Radial Grid")
         {
-            // TODO
+            _dimensionsRad[0] = 2.0;
+            _dimensionsRad[1] = 4.0;
+            Radial_Poisson poissonCircle(_dimensionsRad, 3, 2, 1);
+            poissonCircle.run();
+            visualizationWidget->openFile("solution-2d.vtk");
         }
     }
 }; 
