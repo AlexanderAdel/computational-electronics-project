@@ -1,4 +1,8 @@
-/* File: VisualizationWindow.hpp */
+/**
+ *  \file VisualizationWindow.hpp
+ *
+ *  VisualizationWindow Class Header File
+ */
 
 // Includes from the QT Library
 #include <QMainWindow>
@@ -152,8 +156,6 @@ public:
         QObject::connect(runButton, SIGNAL(clicked()), this, SLOT(clickedRunButton()));
         gridLayout->addWidget(runButton, 3, 1);
     }
-
-    ~VisualizationWindow() {}
 
 public slots:
     void switchedMeshType(const QString& meshTypeString)

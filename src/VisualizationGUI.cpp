@@ -1,4 +1,8 @@
-/* File: VisualizationGUI.cpp */
+/**
+ *  \file VisualizationGUI.cpp
+ *
+ *  VisualizationGUI Execution File
+ */
 
 // Include for the VisualizationWidget Class
 #include "VisualizationWidget.hpp"
@@ -10,8 +14,16 @@
 #include <QApplication>
 #include <QSurfaceFormat>
 
-/*!
- *  @brief Main function.
+/**
+ *  @brief Main function that executes the program.
+ * 
+ *  @param argc Argument counter. Not needed in this program.
+ *  @param argv Argument vector. Not needed in this program.
+ *  @return int Error code from the QApplication class.
+ * 
+ *  First the application is initialized. The window for the visualization is generated,
+ *  the window title is defined and the window size is set to maximum. Then the 
+ *  application is executed.
  */
 int main(int argc, char** argv)
 {
