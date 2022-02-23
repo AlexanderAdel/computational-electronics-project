@@ -15,32 +15,22 @@
 #include <vtkGenericOpenGLRenderWindow.h>
 #include <vtkRenderer.h>
 #include <vtkCamera.h>
-
 #include <vtkDataSet.h>
 #include <vtkDataSetMapper.h>
 #include <vtkDataSetReader.h>
-
 #include <vtkActor.h>
 #include <vtkTextActor.h>
 #include <vtkTextProperty.h>
 #include <vtkCubeAxesActor.h>
-
 #include <vtkLookupTable.h>
 #include <vtkScalarBarActor.h>
 #include <vtkNamedColors.h>
-
-#include <vtkStructuredGrid.h>
-#include <vtkFloatArray.h>
-#include <vtkPointData.h>
-#include <vtkProperty.h>
-#include <vtkPolyData.h>
-#include <vtkPolyDataMapper.h>
 #include <vtkBoxClipDataSet.h>
 
 /**
  *  @brief Class for the visualization of the solution of the Poisson problem.
  *  
- *  The functionality of the widget is based on the VTK library.
+ *  The functionality of this class is based on the open source VTK library.
  */
 class VisualizationWidget : public QVTKOpenGLNativeWidget 
 {
@@ -50,13 +40,11 @@ private:
     vtkNew<vtkGenericOpenGLRenderWindow> window; //!< Shows the finished visualization
     vtkNew<vtkRenderer> renderer;                //!< Renders the given actors
     vtkNew<vtkCamera> camera;                    //!< Defines the view point 
-
     vtkNew<vtkBoxClipDataSet> boxClip;           //!< Shows the inside of the 3D square grid
     vtkNew<vtkDataSetMapper> mapper;             //!< Connects the data set with the actor
     vtkNew<vtkActor> actor;                      //!< Contains the visualization data set
     vtkNew<vtkTextActor> textActor;              //!< Contains the description string
     vtkNew<vtkCubeAxesActor> cubeAxesActor;      //!< Contains the cartesian axes
-
     vtkNew<vtkLookupTable> lut;                  //!< Contains the scalar value range
     vtkNew<vtkScalarBarActor> scalarBar;         //!< Contains the color bar on the right
     vtkNew<vtkNamedColors> colors;               //!< Defines the used colors
