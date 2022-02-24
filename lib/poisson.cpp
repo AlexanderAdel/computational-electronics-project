@@ -17,6 +17,7 @@ Radial_Poisson::Radial_Poisson(std::vector<double> _dimensions,
   : refinement(_refinement), bc(_bc), fe(_shape_function), dof_handler(triangulation)
 {
   dimensions = _dimensions;
+  make_grid();
 }
 
 /**
@@ -156,7 +157,17 @@ void Radial_Poisson::run()
 {
   std::cout << "Solving radial problem in 2 space dimensions."
             << std::endl;
-  make_grid();
+  setup_system();
+  assemble_system();
+  solve();
+  output_results();
+}
+
+void Radial_Poisson::run(int _bc)
+{
+  bc = _bc;
+  std::cout << "Solving radial problem in 2 space dimensions."
+            << std::endl;
   setup_system();
   assemble_system();
   solve();

@@ -73,6 +73,7 @@ class Radial_Poisson
 {
 public:
   Radial_Poisson(std::vector<double> _dimensions, int _refinement, int _shape_function, int _bc);
+  void run(int _bc);
   void run();
 private:
   void make_grid();
@@ -150,7 +151,6 @@ Poisson<dim>::Poisson(std::vector<int> _dimensions,
     point[i] = _dimensions[i];
   }
   make_grid();
-  setup_system();
 }
 
 /**
@@ -290,6 +290,7 @@ void Poisson<dim>::run(int _bc)
   bc = _bc;
   std::cout << "Solving problem in " << dim << " space dimensions."
             << std::endl;
+  setup_system();
   assemble_system();
   solve();
   output_results();
@@ -305,6 +306,7 @@ void Poisson<dim>::run()
 {
   std::cout << "Solving problem in " << dim << " space dimensions."
             << std::endl;
+  setup_system();
   assemble_system();
   solve();
   output_results();
