@@ -437,16 +437,16 @@ public:
      */
     void solveRadialGrid()
     {
-        //if (radialGridNotChanged())
-        //{
-        //    if (boundaryValueNotChanged()) { return; }
-        //    _boundaryValue = boundaryValue->text().toInt();
-        //
-        //    poissonProblemRad->run(_boundaryValue);
-        //    visualizationWidget->openFile("solution-2d.vtk", "Same Grid reused.");
-        //}
-        //else
-        //{
+        if (radialGridNotChanged())
+        {
+            if (boundaryValueNotChanged()) { return; }
+            _boundaryValue = boundaryValue->text().toInt();
+        
+            poissonProblemRad->run(_boundaryValue);
+            visualizationWidget->openFile("solution-2d.vtk", "Same Grid reused.");
+        }
+        else
+        {
             _dimensionsRad[0] = dimension_A->text().toDouble();
             _dimensionsRad[1] = dimension_B->text().toDouble();
             _refinement = refinement->currentText().toInt();
@@ -459,7 +459,7 @@ public:
             poissonProblemRad = new Radial_Poisson(_dimensionsRad, _refinement, _shapeFunction, _boundaryValue);
             poissonProblemRad->run();
             visualizationWidget->openFile("solution-2d.vtk", "New Grid generated.");
-        //}
+        }
     }
 
 public slots:
