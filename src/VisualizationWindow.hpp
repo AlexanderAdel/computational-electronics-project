@@ -68,7 +68,6 @@ private:
     int _boundaryValue = 0;          //!< Saves the value on the boundary on the mesh
     QString _boundaryCondition;      //!< Saves the boundary condition type on the mesh
     bool boundaryIsConstant = false; //!< Saves if the boundary condition is constant
-    bool meshNotChanged = false;     //!< Saves if all parameters are the same as in the last calculation
 
 public:
     /**
